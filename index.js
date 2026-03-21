@@ -18,11 +18,11 @@ wss.on("connection", (ws) => {
   // обработка сообщений
   ws.on("message", (message) => {
     console.log("Received:", message.toString());
-    ws.send(ws);
 
     // рассылаем всем клиентам
     for (const client of clients) {
       if (client.readyState === WebSocket.OPEN) {
+        client.send(ws);
         client.send(message);
       }
     }
