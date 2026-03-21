@@ -11,13 +11,13 @@ console.log(`WebSocket server started on port ${PORT}`);
 const clients = new Set();
 
 wss.on("connection", (ws) => {
-  console.log(`Client ${JSON.stringify(ws)} connected`);
+  console.log(`Client connected`);
 
   clients.add(ws);
 
   // обработка сообщений
   ws.on("message", (message) => {
-    console.log("Received:", message.toString());
+    console.log(JSON.stringify(ws) + message.toString());
 
     // рассылаем всем клиентам
     for (const client of clients) {
