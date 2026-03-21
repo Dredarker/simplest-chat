@@ -1,25 +1,6 @@
 const WebSocket = require("ws");
-const express = require("express");
-const app = express();
 
 const PORT = process.env.PORT || 3000;
-
-app.get("/", (req, res) => {
-  res.send(`
-const socket = new WebSocket("wss://simplest-chat.onrender.com");
-
-socket.onopen = () => {
-  console.log("Connected");
-};
-
-socket.onmessage = (event) => {
-  console.log("Message:", event.data);
-};`);
-});
-
-app.listen(PORT, () => {
-  console.log(`Server started on port ${PORT}`);
-});
 
 // создаём WebSocket сервер
 const wss = new WebSocket.Server({ port: PORT });
@@ -30,18 +11,19 @@ console.log(`WebSocket server started on port ${PORT}`);
 const clients = new Set();
 
 wss.on("connection", (ws) => {
-  console.log("Client connected");
+  console.log(`Client ${ws} connected`);
 
   clients.add(ws);
 
   // обработка сообщений
   ws.on("message", (message) => {
     console.log("Received:", message.toString());
+    ws.send(ws);
 
     // рассылаем всем клиентам
     for (const client of clients) {
       if (client.readyState === WebSocket.OPEN) {
-        client.send(message.toString());
+        client.send(message);
       }
     }
   });
