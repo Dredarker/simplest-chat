@@ -1,39 +1,73 @@
 const WebSocket = require("ws");
+const { v4: uuidv4 } = require("uuid");
 
 const PORT = process.env.PORT || 3000;
 
-// создаём WebSocket сервер
 const wss = new WebSocket.Server({ port: PORT });
 
 console.log(`WebSocket server started on port ${PORT}`);
 
-// храним клиентов
-const clients = new Set();
+// Map: clientId -> ws
+const clients = new Map();
 
 wss.on("connection", (ws) => {
-  console.log(`Client connected`);
+  const clientId = uuidv4();
 
-  clients.add(ws);
+  // сохраняем клиента
+  clients.set(clientId, ws);
 
-  // обработка сообщений
+  console.log(`Client connected: ${clientId}`);
+
+  // отправляем клиенту его ID
+  ws.send(JSON.stringify({
+    type: "init",
+    clientId
+  }));
+
   ws.on("message", (message) => {
-    console.log(JSON.stringify(ws) + message.toString());
+    let data;
 
-    // рассылаем всем клиентам
-    for (const client of clients) {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(message.toString());
+    try {
+      data = JSON.parse(message);
+    } catch {
+      return;
+    }
+
+    // === типы сообщений ===
+
+    // 1. Сообщение всем
+    if (data.type === "broadcast") {
+      for (const [id, client] of clients.entries()) {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({
+            type: "message",
+            from: clientId,
+            text: data.text
+          }));
+        }
+      }
+    }
+
+    // 2. Личное сообщение
+    if (data.type === "private") {
+      const target = clients.get(data.to);
+
+      if (target && target.readyState === WebSocket.OPEN) {
+        target.send(JSON.stringify({
+          type: "message",
+          from: clientId,
+          text: data.text
+        }));
       }
     }
   });
 
-  // отключение клиента
   ws.on("close", () => {
-    console.log("Client disconnected");
-    clients.delete(ws);
+    console.log(`Client disconnected: ${clientId}`);
+    clients.delete(clientId);
   });
 
   ws.on("error", (err) => {
-    console.error("Error:", err);
+    console.error(`Error (${clientId}):`, err);
   });
 });
