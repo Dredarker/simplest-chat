@@ -14,6 +14,7 @@ wss.on("connection", (ws) => {
   console.log(`Client ${ws} connected`);
 
   clients.add(ws);
+  ws.send(ws);
 
   // обработка сообщений
   ws.on("message", (message) => {
@@ -22,7 +23,6 @@ wss.on("connection", (ws) => {
     // рассылаем всем клиентам
     for (const client of clients) {
       if (client.readyState === WebSocket.OPEN) {
-        client.send(ws);
         client.send(message);
       }
     }
