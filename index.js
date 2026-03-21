@@ -22,7 +22,7 @@ wss.on("connection", (ws) => {
     // рассылаем всем клиентам
     for (const client of clients) {
       if (client.readyState === WebSocket.OPEN) {
-        client.send(`${ws}: ${message}`);
+        client.send(`${JSON.stringify(ws)}: ${message.toString()}`);
       }
     }
   });
