@@ -67,6 +67,16 @@ wss.on("connection", (ws) => {
         }));
       }
     }
+
+    // 3. Все клиенты
+    if (data.type === "getclients") {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: "info",
+          text: clients.length
+        }));
+      }
+    }
   });
 
   ws.on("close", () => {
