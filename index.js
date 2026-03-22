@@ -11,7 +11,7 @@ console.log(`WebSocket server started on port ${PORT}`);
 const clients = new Map();
 
 wss.on("connection", (ws) => {
-  const clientId = uuidv4();
+  const clientId = uuidv4().slice(0, 7);
 
   // сохраняем клиента
   clients.set(clientId, ws);
@@ -65,6 +65,14 @@ wss.on("connection", (ws) => {
   ws.on("close", () => {
     console.log(`Client disconnected: ${clientId}`);
     clients.delete(clientId);
+    for (const [id, client] of clients.entries()) {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({
+            type: "message",
+            text: `${clientId} отключился`
+          }));
+        }
+      }
   });
 
   ws.on("error", (err) => {
