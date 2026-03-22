@@ -17,7 +17,14 @@ wss.on("connection", (ws) => {
   clients.set(clientId, ws);
 
   console.log(`Client connected: ${clientId}`);
-
+  for (const [id, client] of clients.entries()) {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify({
+        type: "message",
+        text: `${clientId} connected`
+      }));
+    }
+  }
   // отправляем клиенту его ID
   ws.send(JSON.stringify({
     type: "init",
@@ -69,7 +76,7 @@ wss.on("connection", (ws) => {
         if (client.readyState === WebSocket.OPEN) {
           client.send(JSON.stringify({
             type: "message",
-            text: `${clientId} отключился`
+            text: `${clientId} disconnected`
           }));
         }
       }
