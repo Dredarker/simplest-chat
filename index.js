@@ -143,7 +143,7 @@ const server = http.createServer((req, res) => {
     res.end(client_module);
   }
 });
-const wss = new WebSocket.Server({ port: PORT });
+const wss = new WebSocket.Server({ server });
 
 console.log(`WebSocket server started on port ${PORT}`);
 
