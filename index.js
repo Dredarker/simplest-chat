@@ -236,3 +236,7 @@ wss.on("connection", (ws) => {
     console.error(`Error (${clientId}):`, err);
   });
 });
+
+server.listen(PORT, () => {
+  console.log("Server running on port ", PORT);
+});
