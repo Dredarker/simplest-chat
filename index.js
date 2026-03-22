@@ -73,7 +73,7 @@ wss.on("connection", (ws) => {
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({
           type: "getclients",
-          text: clients.length
+          text: clients.size
         }));
       }
     }
