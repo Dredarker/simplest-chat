@@ -3,10 +3,6 @@ const WebSocket = require("ws");
 const { v4: uuidv4 } = require("uuid");
 
 const PORT = process.env.PORT || 3000;
-let client_module;
-let a = fetch("https://raw.githubusercontent.com/Dredarker/simplest-chat/refs/heads/main/client_module.txt")
-    .then((b) => b.text())
-    .then((c) => client_module = c);
 
 const server = http.createServer((req, res) => {
   if (req.url === "/") {
