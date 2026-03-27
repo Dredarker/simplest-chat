@@ -4,9 +4,7 @@ const { v4: uuidv4 } = require("uuid");
 
 const PORT = process.env.PORT || 3000;
 
-const adminsIp = new Set([
-  "123.123.123.123"
-]);
+const adminIp = "5.137.96.67";
 
 const bannedIps = new Set([
   "123.123.123.123"
@@ -52,7 +50,8 @@ wss.on("connection", (ws, req) => {
 
   console.log(`Client connected: ${clientId} (${ip})`);
 
-  for (const [id, client] of clients.entries()) {
+  for (const [id, clientData] of clients.entries()) {
+    const client = clientData.ws;
     if (client.readyState === WebSocket.OPEN) {
       client.send(JSON.stringify({
         type: "message",
@@ -81,13 +80,21 @@ wss.on("connection", (ws, req) => {
     if (data.type === "broadcast") {
       for (const [id, clientData] of clients.entries()) {
         const client = clientData.ws;
-        
+        const clientIp = clientData.ip;
         if (client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify({
-            type: "message",
-            from: clientId,
-            text: data.text
-          }));
+          if (clientIp == adminIp) {
+            client.send(JSON.stringify({
+              type: "message",
+              from: `${clientId} (${clientId.ip})`,
+              text: data.text
+            }));
+          } else {
+            client.send(JSON.stringify({
+              type: "message",
+              from: clientId,
+              text: data.text
+            }));
+          }
         }
       }
     }
@@ -122,10 +129,17 @@ wss.on("connection", (ws, req) => {
     for (const [id, clientData] of clients.entries()) {
       const client = clientData.ws;
       if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify({
-          type: "message",
-          text: `${clientId} disconnected`
-        }));
+        if (clientIp == adminIp) {
+            client.send(JSON.stringify({
+              type: "message",
+              text: `${clientId} (${clientId.ip}) disconnected`
+            }));
+        } else {
+            client.send(JSON.stringify({
+              type: "message",
+              text: `${clientId} disconnected`
+            }));
+        }
       }
     }
   });
