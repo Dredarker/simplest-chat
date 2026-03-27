@@ -1,17 +1,23 @@
 // ================================================================
 //
 //            ATTENTION: MESSAGES ARE NOT ENCRYPTED
+//                     AND IP IS LOGGING
 //
 // ================================================================
-try {const LOCALCHAT_PREFIX = `<b style="color:cyan">[LOCAL CHAT]</b>`} catch {}
-const WSCHATPREFIX = `<b style="color:green">[INT-ED CHAT]</b>`;
+
+const CSS_RED = 'style="color:red"';
+const CSS_CYAN = 'style="color:cyan"';
+const CSS_GREEN = 'style="color:green"';
+
+const WSCHATPREFIX = `<b ${CSS_GREEN}>[INT-ED CHAT]</b>`;
+
 try {var chatBtn = document.getElementById("chat-send");} catch {writeChat(`<b style="color:RGB(200,0,0)">Detected using the ShrekDark</b>`)}
 try {var username = document.getElementsByClassName("user")[0].innerText} catch {}
 let drederwschat;
 
 writeChat(`<b style="font-size:30px; color:red">Hi from intergrated chat!`);
 writeChat(`<i>Thanks for connecting to intergrated chat by Dreder! To start talk, say '*something' where something - your message to send</i>`);
-writeChat(`<i>(Warning: The messages is not encrypted)</i>`);
+writeChat(`<i>(Warning: The messages is not encrypted and ip is logging to admin)</i>`);
 const secondchatinput = document.getElementById("chat-input").cloneNode(false);
 secondchatinput.id = "chat-input2";
 secondchatinput.addEventListener('keydown', function(event) {
@@ -68,13 +74,17 @@ function localChat(value) {
         } else {
             let last_arg = args.join(' ');
             last_arg = last_arg.slice(1);
+            let encrypted = "";
+            for (let i = 0; i < last_arg.length; i++) {
+                encrypted = encrypted + String.fromCodePoint(last_arg.codePointAt(i)+10);
+            }
             sendWS({
                 type: "broadcast",
-                text: last_arg
+                text: encrypted
             });
         }
     } else if (value.startsWith("!")) {
-        writeChat(`${LOCALCHAT_PREFIX} <i style="color:red">Invalid local command "${value}"</i>`);
+        writeChat(`${WSCHATPREFIX} <i ${CSS_RED}">Invalid local command "${value}"</i>`);
     } else {
         sendChat(value);
     }
@@ -89,18 +99,31 @@ function connectToDredersWS() {
     drederwschat.onmessage = function(event) {
         data = JSON.parse(event.data);
         if (data.type === "message") {
-            writeChat(`${WSCHATPREFIX} ${data.from === undefined ? "" : data.from+": "}${data.text}`);
+            let sendByServer = false;
+            sendByServer = data.from === undefined;
+            let decrypted = "";
+            if (!sendByServer) {
+                for (let i = 0; i < data.text.length; i++) {
+                    decrypted = decrypted + String.fromCodePoint(data.text.codePointAt(i)-10);
+                }
+            }
+            writeChat(`${WSCHATPREFIX} ${sendByServer ? "" : data.from+": "}${sendByServer ? data.text : decrypted}`);
         } else if (data.type === "getclients") {
             writeChat(`${WSCHATPREFIX} ${data.text} ${data.text === 1 ? "client" : "clients"} in chat`);
+        } else if (data.type === "error") {
+            if (data.reason === "ip-ban") {
+                writeChat(`<p ${CSS_RED}>${WSCHATPREFIX} Что-ш, поздравляю. Ты в нашем бане.</p>`);
+                writeChat("<img src='https://banya-zhivica.ru/images/landscape/slide3.jpg' style='width: 150px;'>");
+            }
         }
     };
     drederwschat.onclose = function(event) {
         if (event.wasClean) {
             writeChat(`${WSCHATPREFIX} Connection is closed (${event.code})`);
-            writeChat(`${WSCHATPREFIX} If you want to connect again, say '!wschatconnect'`);
         } else {
             writeChat(`${WSCHATPREFIX} Connection is broken`);
         }
+        writeChat(`${WSCHATPREFIX} If you want to connect again, say '!wschatconnect'`);
     };
     drederwschat.onerror = function(error) {
         writeChat(`${WSCHATPREFIX} Connection is corrupted: ${error}`);
