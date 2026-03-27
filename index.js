@@ -53,10 +53,19 @@ wss.on("connection", (ws, req) => {
   for (const [id, clientData] of clients.entries()) {
     const client = clientData.ws;
     if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify({
-        type: "message",
-        text: `${clientId} connected`
-      }));
+      if (clientIp == adminIp) {
+        client.send(JSON.stringify({
+          type: "message",
+          from: `${clientId} (${ip})`,
+          text: data.text
+        }));
+      } else {
+        client.send(JSON.stringify({
+          type: "message",
+          from: clientId,
+          text: data.text
+        }));
+      }
     }
   }
   // отправляем клиенту его ID
@@ -85,7 +94,7 @@ wss.on("connection", (ws, req) => {
           if (clientIp == adminIp) {
             client.send(JSON.stringify({
               type: "message",
-              from: `${clientId} (${clientId.ip})`,
+              from: `${clientId} (${ip})`,
               text: data.text
             }));
           } else {
@@ -132,7 +141,7 @@ wss.on("connection", (ws, req) => {
         if (clientIp == adminIp) {
             client.send(JSON.stringify({
               type: "message",
-              text: `${clientId} (${clientId.ip}) disconnected`
+              text: `${clientId} (${ip}) disconnected`
             }));
         } else {
             client.send(JSON.stringify({
@@ -145,7 +154,7 @@ wss.on("connection", (ws, req) => {
   });
 
   ws.on("error", (err) => {
-    console.error(`Error (${clientId}, ${clientId.ip}):`, err);
+    console.error(`Error (${clientId}, ${ip}):`, err);
   });
 });
 
