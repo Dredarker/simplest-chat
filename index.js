@@ -56,14 +56,12 @@ wss.on("connection", (ws, req) => {
       if (clientData.ip == adminIp) {
         client.send(JSON.stringify({
           type: "message",
-          from: `${clientId} (${ip})`,
-          text: data.text
+          text: `${clientId} (${ip}) connected`
         }));
       } else {
         client.send(JSON.stringify({
           type: "message",
-          from: clientId,
-          text: data.text
+          text: `${clientId} connected`
         }));
       }
     }
