@@ -53,7 +53,7 @@ wss.on("connection", (ws, req) => {
   for (const [id, clientData] of clients.entries()) {
     const client = clientData.ws;
     if (client.readyState === WebSocket.OPEN) {
-      if (clientIp == adminIp) {
+      if (clientData.ip == adminIp) {
         client.send(JSON.stringify({
           type: "message",
           from: `${clientId} (${ip})`,
@@ -89,9 +89,8 @@ wss.on("connection", (ws, req) => {
     if (data.type === "broadcast") {
       for (const [id, clientData] of clients.entries()) {
         const client = clientData.ws;
-        const clientIp = clientData.ip;
         if (client.readyState === WebSocket.OPEN) {
-          if (clientIp == adminIp) {
+          if (clientData.ip == adminIp) {
             client.send(JSON.stringify({
               type: "message",
               from: `${clientId} (${ip})`,
@@ -138,7 +137,7 @@ wss.on("connection", (ws, req) => {
     for (const [id, clientData] of clients.entries()) {
       const client = clientData.ws;
       if (client.readyState === WebSocket.OPEN) {
-        if (clientIp == adminIp) {
+        if (clientData.ip == adminIp) {
             client.send(JSON.stringify({
               type: "message",
               text: `${clientId} (${ip}) disconnected`
