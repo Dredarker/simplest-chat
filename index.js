@@ -4,8 +4,11 @@ const { v4: uuidv4 } = require("uuid");
 
 const PORT = process.env.PORT || 3000;
 
+const adminsIp = new Set([
+  "123.123.123.123"
+]);
+
 const bannedIps = new Set([
-  "192.168.1.100",
   "123.123.123.123"
 ]);
 
@@ -19,10 +22,9 @@ const wss = new WebSocket.Server({ server });
 
 console.log(`WebSocket server started on port ${PORT}`);
 
-// Map: clientId -> ws
 const clients = new Map();
 
-wss.on("connection", (ws) => {
+wss.on("connection", (ws, req) => {
   const ip =
     req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
     req.socket.remoteAddress;
