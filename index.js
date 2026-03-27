@@ -4,6 +4,11 @@ const { v4: uuidv4 } = require("uuid");
 
 const PORT = process.env.PORT || 3000;
 
+const bannedIps = new Set([
+  "192.168.1.100",
+  "123.123.123.123"
+]);
+
 const server = http.createServer((req, res) => {
   if (req.url === "/") {
     res.writeHead(200, { "Content-Type": "text/html" });
@@ -18,12 +23,33 @@ console.log(`WebSocket server started on port ${PORT}`);
 const clients = new Map();
 
 wss.on("connection", (ws) => {
+  const ip =
+    req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
+    req.socket.remoteAddress;
+
+  if (bannedIps.has(ip)) {
+    console.log(`Blocked connection from banned IP: ${ip}`);
+
+    ws.send(JSON.stringify({
+      type: "error",
+      message: "ip-ban"
+    }));
+
+    ws.close();
+
+    return;
+  }
+
   const clientId = uuidv4().slice(0, 7);
 
   // сохраняем клиента
-  clients.set(clientId, ws);
+  clients.set(clientId, {
+    ws,
+    ip
+  });
 
-  console.log(`Client connected: ${clientId}`);
+  console.log(`Client connected: ${clientId} (${ip})`);
+
   for (const [id, client] of clients.entries()) {
     if (client.readyState === WebSocket.OPEN) {
       client.send(JSON.stringify({
@@ -51,7 +77,9 @@ wss.on("connection", (ws) => {
 
     // 1. Сообщение всем
     if (data.type === "broadcast") {
-      for (const [id, client] of clients.entries()) {
+      for (const [id, clientData] of clients.entries()) {
+        const client = clientData.ws;
+        
         if (client.readyState === WebSocket.OPEN) {
           client.send(JSON.stringify({
             type: "message",
@@ -66,8 +94,8 @@ wss.on("connection", (ws) => {
     if (data.type === "private") {
       const target = clients.get(data.to);
 
-      if (target && target.readyState === WebSocket.OPEN) {
-        target.send(JSON.stringify({
+      if (target && target.ws.readyState === WebSocket.OPEN) {
+        target.ws.send(JSON.stringify({
           type: "message",
           from: clientId,
           text: data.text
@@ -89,18 +117,19 @@ wss.on("connection", (ws) => {
   ws.on("close", () => {
     console.log(`Client disconnected: ${clientId}`);
     clients.delete(clientId);
-    for (const [id, client] of clients.entries()) {
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify({
-            type: "message",
-            text: `${clientId} disconnected`
-          }));
-        }
+    for (const [id, clientData] of clients.entries()) {
+      const client = clientData.ws;
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({
+          type: "message",
+          text: `${clientId} disconnected`
+        }));
       }
+    }
   });
 
   ws.on("error", (err) => {
-    console.error(`Error (${clientId}):`, err);
+    console.error(`Error (${clientId}, ${clientId.ip}):`, err);
   });
 });
 
