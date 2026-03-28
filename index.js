@@ -118,12 +118,12 @@ wss.on("connection", (ws, req) => {
       }
     }
 
-    // 3. Все клиенты
+    // 3. Гет
     if (data.type === "getclients") {
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({
           type: "getclients",
-          text: clients
+          text: clients.keys()
         }));
       }
     }
