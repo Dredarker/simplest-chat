@@ -109,7 +109,7 @@ function connectToDredersWS() {
             }
             writeChat(`${WSCHATPREFIX} ${sendByServer ? "" : data.from+": "}${sendByServer ? data.text : decrypted}`);
         } else if (data.type === "getclients") {
-            writeChat(`${WSCHATPREFIX} ${data.text} ${data.text === 1 ? "client" : "clients"} in chat`);
+            writeChat(`${WSCHATPREFIX} ${String(JSON.stringify(data.text))}`);
         } else if (data.type === "error") {
             if (data.reason === "ip-ban") {
                 writeChat(`<p ${CSS_RED}>${WSCHATPREFIX} Что-ш, поздравляю. Ты в нашем бане.</p>`);
@@ -123,7 +123,7 @@ function connectToDredersWS() {
         } else {
             writeChat(`${WSCHATPREFIX} Connection is broken`);
         }
-        writeChat(`${WSCHATPREFIX} If you want to connect again, say '!wschatconnect'`);
+        writeChat(`${WSCHATPREFIX} If you want to connect again, say '!connectws'`);
     };
     drederwschat.onerror = function(error) {
         writeChat(`${WSCHATPREFIX} Connection is corrupted: ${error}`);
