@@ -121,6 +121,7 @@ wss.on("connection", (ws, req) => {
     // 3. Гет
     if (data.type === "getclients") {
       if (ws.readyState === WebSocket.OPEN) {
+        console.log(clients);
         ws.send(JSON.stringify({
           type: "getclients",
           text: clients.keys()
