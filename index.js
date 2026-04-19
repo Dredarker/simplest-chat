@@ -11,7 +11,6 @@ const bannedIps = new Set([
 ]);
 
 const server = http.createServer((req, res) => {
-  console.log(req.url);
   if (req.url === "/") {
     res.writeHead(200, { "Content-Type": "text/html" });
     res.end("Server is running");
