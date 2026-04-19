@@ -16,6 +16,7 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, { "Content-Type": "text/html" });
     res.end("Server is running");
   }
+  if (req.url === "/healthz") {res.writeHead(200, { "Content-Type": "text/html" });}
 });
 const wss = new WebSocket.Server({ server });
 
